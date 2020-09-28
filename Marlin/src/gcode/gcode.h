@@ -502,7 +502,7 @@ private:
   static void G96();
   static void G97();
   static void G98();
-  static void G40();
+  static void G40(float time);
   static void G41();
   static void pumpsyringe(float pressure_set);
 

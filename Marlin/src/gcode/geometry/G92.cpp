@@ -84,6 +84,18 @@ void valve_it(uint16_t f){
   }
 }
 
+void toggleValve(float time){
+    // valve open
+    extDigitalWrite(16, 1);
+    analogWrite(16, 255);
+  
+    delay(time*1000);
+    // valve close
+    extDigitalWrite(16, 0);
+    analogWrite(16, 0);
+  
+}
+
 void staticClean(){
   // PUMPS IN
   extDigitalWrite(9, 1);
@@ -168,8 +180,15 @@ void GcodeSuite::G98(){
 
 
 void GcodeSuite::G40(){
-  extDigitalWrite(16, 0);
-  analogWrite(16, 0);
+  float time_set;
+  if (parser.seen('T')){
+     time_set = parser.intval('T'); 
+     toggleValve(time_set);
+  }
+  else
+  {
+    SERIAL_ECHOLNPGM("Please Insert the time wanted");
+  }
 }
 
 void GcodeSuite::G41(){
