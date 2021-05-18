@@ -193,28 +193,42 @@ void GcodeSuite::pumpsyringe(float pressure_set){
   }
   else{
     SERIAL_ECHOLNPAIR("PSET:",pressure_set);
-    float min_pressure = pressure_set*0.95;
-    float max_pressure = pressure_set*1.05;
-    while(pressure_read<min_pressure || pressure_read>=max_pressure){
-      if(pressure_read<min_pressure){
-          pos+=(0.01*errorFunction(min_pressure, pressure_read));
+    float min_pressure = pressure_set*0.75;
+    float max_pressure = pressure_set*1.25;
+  
+    if(pressure_read<min_pressure){
+      while(pressure_read<min_pressure){
+        pos += 0.1;
+        if(pressure_read < ABSOLUTE_MAX_PRESSURE){
+          endstops.enable(true);
+          do_blocking_move_to_z(pos, 10);
+          pressure_read = force.readPressure();
+          SERIAL_ECHOLNPAIR("PSI:",force.readPressure());
+        }
+        else{
+          SERIAL_ECHOLN("Pressure is too high!!");
+          break;
+        }
       }
-      if(pressure_read>max_pressure){
-          pos-=(0.01*errorFunction(max_pressure, pressure_read));
-      }
-      if(pressure_read < ABSOLUTE_MAX_PRESSURE){
-        endstops.enable(true);
-        do_blocking_move_to_z(pos, 10);
-        pressure_read = force.readPressure();
-        SERIAL_ECHOLNPAIR("force_N:",force.readPressure());
-      }
-      else{
-        SERIAL_ECHOLN("Pressure is too high!!");
-        break;
+      
+    } else if (pressure_read>=max_pressure) {
+      while(pressure_read>=max_pressure){
+        pos -= 0.1;
+        if(pressure_read < ABSOLUTE_MAX_PRESSURE){
+          endstops.enable(true);
+          do_blocking_move_to_z(pos, 10);
+          pressure_read = force.readPressure();
+          SERIAL_ECHOLNPAIR("PSI:",force.readPressure());
+        }
+        else{
+          SERIAL_ECHOLN("Pressure is too high!!");
+          break;
+        }
       }
     }
   }
 }
+
 
 int GcodeSuite::errorFunction(float set, float real){
   int error = abs(set - real);
